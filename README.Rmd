@@ -12,18 +12,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Objective
 
 Here, we collect news metadata from [The New York Times](https://www.nytimes.com/) API and save it as .csv file.
-Each row will be a news, and each column a piece of metadata priveded by the article_search_v2 API.
+Each row will be a news, and each column a piece of metadata provided by the article_search_v2 API.
 
 For this example I will collect news *about* "robots" published in 2016.
 
 ## Background
 
-You can check the [API documentation here](http://developer.nytimes.com/). Some of the fields we can obtain are the headline, abstract and/or snipets, author, date of publication, url, section, among others. Notice that you cannot obtain the full news text, but in most of cases the provided abstract or lead paragraph summarizes well the story.
+You can check the [API documentation here](http://developer.nytimes.com/). Some of the fields we can obtain are the headline, abstract and/or snippets, author, date of publication, URL, section, among others. Notice that you cannot obtain the full news text, but in most of cases the provided abstract or lead paragraph summarizes well the story.
 
 
 ## API key
 
-In order to run this code you have to obatin an [Article Search API key](http://developer.nytimes.com/signup).
+In order to run this code you have to obtain an [Article Search API key](http://developer.nytimes.com/signup).
 An API key is a long string of numbers and letters The New York Times API administrators provide you. 
 
 Replace yours in the following
@@ -35,7 +35,7 @@ key = "InS3rt:YoUR:4P1keY:h3r3"
 
 ## Housekeeping
 
-I like to define the destination folder and file names at the beggining of my codes.
+I like to define the destination folder and file names at the beginning of my codes.
 
 ```{r}
 # Write the name of the output file, always put .csv
@@ -48,7 +48,7 @@ setwd(choose.dir())
 
 ## Libraries
 
-We can call the API manually and send requests to the dedicated URL. Fortunatelly, others have created packages
+We can call the API manually and send requests to the dedicated URL. , others have created packages
 that interact with the API easily, so that we are going to use that. 
 
 Here I am using the [rtimes](https://www.rdocumentation.org/packages/rtimes/versions/0.3.0) library, however there are other packages that do something similar. If you don't have it yet, install it by removing the hashtag in the following lines.
@@ -70,7 +70,7 @@ This is where we tell what we are looking for. If you are getting news for acade
 **begin_date** and **end_date** are self explanatory, the format is YYYYMMDD. If we do not write any the output will be from today backwards. The oldest possible date is: 18510918.
 **sort** from the oldest or newest
 
-**fq** is the tricky one. I am searching news *about* robots, the technology. So that, news about *Westworld*,  *Mr.Robot* or *Terminator* are not necesary this time. To avoid them I used the **"subject.contains"** filter. Subject is a type of tags used by The New York Times different to the sections, and manually assigned to each article. [The list of subjects is here](http://www.nytimes.com/pages/topics/). I know that robotic technologies are labeled either as Robot, Technology or Artificial Intelligence, so I use that. 
+**fq** is the tricky one. I am searching news *about* robots, the technology. So that, news about *Westworld*,  *Mr.Robot* or *Terminator* are not necessary this time. To avoid them I used the **"subject.contains"** filter. Subject is a type of tags used by The New York Times different to the sections, and manually assigned to each article. [The list of subjects is here](http://www.nytimes.com/pages/topics/). I know that robotic technologies are labeled either as Robot, Technology or Artificial Intelligence, so I use that. 
 
 If I wanted only specific sections of the newspaper I can also specify it in the **fq** as you can see in the following lines, but I let them unused.
 
@@ -90,7 +90,7 @@ sort <- "oldest"
 
 ## Calling function
 
-By default the article search function  only gets the first *page* of results containg 10 news. But we want them all. Then, simply create a function that iterates over all possible pages in our search.
+By default the article search function  only gets the first *page* of results containing 10 news. But we want them all. Then, simply create a function that iterates over all possible pages in our search.
 
 
 ```{r eval=FALSE}
@@ -111,9 +111,9 @@ search_by_page <- function(pag) {
 
 In this section, we call the function one time to know how many news are, and thus, how many pages are.
 
-If we search for words like "presindent" we will find thousands of news having that. However the API only allows you to get up to 100 pages (1000 news). If necesary we can circunvent that, by running a test. 
+Some queries (words) are too general that we might find thousands of news having them. However the API only allows you to get up to 100 pages (1000 news). If necessary we can circumvent that, by adjusting the query. For example, instead of retrieving all year, change dates and get news for every six months. 
 
-Here we figure out how many news are thet comply our query, if the number surpass the 100 pages then we can adjust the query by changing, for example, the dates.
+Here we figure out how many news are that comply our query, if the number surpass the 100 pages we print a message telling us to make adjustments.
 
 ```{r eval=FALSE}
 output1 <- search_by_page(0) 
