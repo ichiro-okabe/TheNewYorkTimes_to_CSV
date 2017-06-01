@@ -1,0 +1,186 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Objective
+
+Here we collect news metadata from [The New York Times](https://www.nytimes.com/) API and save it as .csv file.
+Each row will be a news, and each column a piece of metadata priveded by the article_search_v2 API.
+
+For this example I will collect news **about** "robots" published in 2016.
+
+## Background
+
+You can check the [API documentation here](http://developer.nytimes.com/). Some of the fields we can obtain are the headline, abstract and/or snipets, author, date of publication, url, section, among others. Notice that you cannot obtain the full news text, but in most of cases the provided abstract or lead paragraph summarizes well the story.
+
+
+## API key
+
+In order to run this code you have to obatin an [Article Search API key](http://developer.nytimes.com/signup).
+An API key is a long string of numbers and letters The New York Times API administrators provide you. 
+
+Replace yours in the following
+
+```{r}
+key = "InS3rt:YoUR:4P1keY:h3r3" 
+```
+
+
+## Housekeeping
+
+I like to define the destination folder and file names at the beggining of my codes.
+
+```{r}
+# Write the name of the output file, always put .csv
+file_name = "robot_test.csv" 
+
+# set working directory
+setwd(choose.dir())
+
+```
+
+## Libraries
+
+We can call the API manually and send requests to the dedicated URL. Fortunatelly, others have created packages
+that interact with the API easily, so that we are going to use that. 
+
+Here I am using the [rtimes](https://www.rdocumentation.org/packages/rtimes/versions/0.3.0) library, however there are other packages that do something similar. If you don't have it yet, install it by removing the hashtag in the following lines.
+
+I will also use the [plyr](https://cran.r-project.org/web/packages/plyr/plyr.pdf) library.
+
+```{r}
+#install.packages("rtimes")
+library(rtimes)
+library(plyr)
+```
+
+## Crafting a query
+
+This is where we tell what we are looking for. If you are getting news for academic purposes better to design a good query, and this is only possible by reading through the documentation of the API to know what we can ask for, and how to filter, and the library documentation to know how to write it in code. But the short explanation is as follows:
+
+**q** is the word(s) the news will contain in the headline or body.
+**fq** are filters.
+**begin_date** and **end_date** are self explanatory, the format is YYYYMMDD. If we do not write any the output will be from today backwards. The oldest possible date is: 18510918.
+**sort** from the oldest or newest
+
+**fq** is the tricky one. I am looking for news *about* robots, the technology. So that, news about *Westworld*,  *Mr.Robot* or *Terminator* are not necesary this time. To avoid them I used the **"subject.contains"** filter. Subject is a type of tags used by The New York Times different to the sections, and manually assigned to each article. [The list of subjects is here](http://www.nytimes.com/pages/topics/). I know that robotic technologies are labeled either as Robot, Technology or Artificial Intelligence, so I use that. 
+
+If I wanted only specific sections of the newspaper I can also specify it in the **fq** as you can see in the following lines, but I let them unused.
+
+```{r}
+# Query
+q <- "robots"
+
+# Filters
+fq <- 'subject.contains: ("Robots*" "Technology" "Artificial Intelligence")'
+                    # AND section_name:("World" "Opinion" "Blogs" "Public Editor" "The Public Editor" 
+                    #"Times Topics" "Topics" "Front Page" "Business" "Food" "Health" 
+                    #"Technology" "Science" "Open")'
+begin_date <- "20160101"
+end_date <- "20161231"
+sort <- "oldest"
+```
+
+## Calling function
+
+By default the article search function  only gets the first *page* of results containg 10 news. But we want them all. Then, simply create a function that iterates over all possible pages in our search.
+
+
+```{r}
+search_by_page <- function(pag) { 
+  as_search(key = key
+            , q = q
+            , fq = fq
+            , begin_date = begin_date
+            , end_date = end_date
+            , sort = sort
+            , page = pag
+  )
+}
+```
+
+
+## Test and number of pages
+
+In this section, we call the function one time to know how many news are, and thus, how many pages are.
+
+If we search for words like "presindent" we will find thousands of news having that. However the API only allows you to get up to 100 pages (1000 news). If necesary we can circunvent that, by running a test. 
+
+Here we figure out how many news are thet comply our query, if the number surpass the 100 pages then we can adjust the query by changing, for example, the dates.
+
+```{r}
+output1 <- search_by_page(0) 
+pages <- as.numeric(ceiling(output1$meta["hits"]/10))
+pages
+if (pages > 100) {print("Too many news, adjust the dates")} else {print("Proceed")}
+```
+
+## Get the data
+
+Once we sorted the limitation, we can collect the data.
+
+```{r}
+articles <- lapply(0:(pages-1), function(x) {
+  search <- search_by_page(x)
+  data <- search$data
+  return(data)
+  }
+)
+```
+
+## Process data
+
+The following transform the API response to data frame.
+
+```{r}
+rows <- list(0) #Initial empty value for a an empty list
+for (i in 1:pages) {
+  list_of_values <-  lapply((1:length(articles[[i]])), function(y) {
+    n <- articles[[i]][[y]]
+    keywords <- keywords_type <- " "
+    if (length(n$keywords) > 0) {
+      keywords <- paste(sapply ((1:length(n$keyword)), function(x) {
+        n$keywords[[x]]$value}), collapse = " | ")
+      keywords_type <- paste(sapply ((1:length(n$keyword)), function(x) {
+        n$keywords[[x]]$name}), collapse = " | ")}
+    return (c("id" = n$"_id"
+              , "headline_main" = n$headline$main
+              , "headline_print" = n$headline$print_headline
+              , "lead_paragraph" = n$lead_paragraph
+              , "snippet" = n$snippet
+              , "abstract" = n$abstract
+              , "web_url" = n$web_url
+              #, "print_page" = n$print_page
+              , "word_count" = n$word_count
+              , "source1" = n$"source"
+              #, "blog" = n$blog
+              , "keywords" = keywords
+              , "keywords_type" = keywords_type
+              , "type_of_material" = n$type_of_material
+              , "document_type" = n$document_type
+              , "news_desk" = n$news_desk
+              , "section_name" = n$section_name
+              , "subsection_name" = n$subsection_name
+              , "pub_date" = n$pub_date
+              , "byline" = n$byline$original
+              )
+            )
+    }
+    )
+  rows <- c(rows, list_of_values)
+}
+rows <- rows[-1] #Removes the initial empty value
+df <- lapply(rows, function(x) data.frame(as.list(x),stringsAsFactors = F))
+df <- rbind.fill(df) #merge all together
+```
+
+
+## Write the file
+
+Finally, we save the data frame as .csv file
+
+```{r}
+write.csv(df, file = file_name, row.names = F)
+```
+
