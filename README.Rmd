@@ -1,5 +1,5 @@
 ---
-title: "New York Times to data frame"
+title: "The New York Times to data frame"
 author: "Cristian Mejia"
 date: "June 1, 2017"
 output: html_document
