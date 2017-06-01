@@ -1,16 +1,20 @@
 ---
-title: "The New York Times to .CSV"
+title: "New York Times to data frame"
 author: "Cristian Mejia"
 date: "June 1, 2017"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ## Objective
 
-Here we collect news metadata from [The New York Times](https://www.nytimes.com/) API and save it as .csv file.
+Here, we collect news metadata from [The New York Times](https://www.nytimes.com/) API and save it as .csv file.
 Each row will be a news, and each column a piece of metadata priveded by the article_search_v2 API.
 
-For this example I will collect news **about** "robots" published in 2016.
+For this example I will collect news *about* "robots" published in 2016.
 
 ## Background
 
@@ -57,7 +61,7 @@ library(rtimes)
 library(plyr)
 ```
 
-## Crafting a query
+## Crafting the query
 
 This is where we tell what we are looking for. If you are getting news for academic purposes better to design a good query, and this is only possible by reading through the documentation of the API to know what we can ask for, and how to filter, and the library documentation to know how to write it in code. But the short explanation is as follows:
 
@@ -66,7 +70,7 @@ This is where we tell what we are looking for. If you are getting news for acade
 **begin_date** and **end_date** are self explanatory, the format is YYYYMMDD. If we do not write any the output will be from today backwards. The oldest possible date is: 18510918.
 **sort** from the oldest or newest
 
-**fq** is the tricky one. I am looking for news *about* robots, the technology. So that, news about *Westworld*,  *Mr.Robot* or *Terminator* are not necesary this time. To avoid them I used the **"subject.contains"** filter. Subject is a type of tags used by The New York Times different to the sections, and manually assigned to each article. [The list of subjects is here](http://www.nytimes.com/pages/topics/). I know that robotic technologies are labeled either as Robot, Technology or Artificial Intelligence, so I use that. 
+**fq** is the tricky one. I am searching news *about* robots, the technology. So that, news about *Westworld*,  *Mr.Robot* or *Terminator* are not necesary this time. To avoid them I used the **"subject.contains"** filter. Subject is a type of tags used by The New York Times different to the sections, and manually assigned to each article. [The list of subjects is here](http://www.nytimes.com/pages/topics/). I know that robotic technologies are labeled either as Robot, Technology or Artificial Intelligence, so I use that. 
 
 If I wanted only specific sections of the newspaper I can also specify it in the **fq** as you can see in the following lines, but I let them unused.
 
@@ -89,7 +93,7 @@ sort <- "oldest"
 By default the article search function  only gets the first *page* of results containg 10 news. But we want them all. Then, simply create a function that iterates over all possible pages in our search.
 
 
-```{r}
+```{r eval=FALSE}
 search_by_page <- function(pag) { 
   as_search(key = key
             , q = q
@@ -111,7 +115,7 @@ If we search for words like "presindent" we will find thousands of news having t
 
 Here we figure out how many news are thet comply our query, if the number surpass the 100 pages then we can adjust the query by changing, for example, the dates.
 
-```{r}
+```{r eval=FALSE}
 output1 <- search_by_page(0) 
 pages <- as.numeric(ceiling(output1$meta["hits"]/10))
 pages
@@ -122,7 +126,7 @@ if (pages > 100) {print("Too many news, adjust the dates")} else {print("Proceed
 
 Once we sorted the limitation, we can collect the data.
 
-```{r}
+```{r eval=FALSE}
 articles <- lapply(0:(pages-1), function(x) {
   search <- search_by_page(x)
   data <- search$data
@@ -135,7 +139,7 @@ articles <- lapply(0:(pages-1), function(x) {
 
 The following transform the API response to data frame.
 
-```{r}
+```{r eval=FALSE}
 rows <- list(0) #Initial empty value for a an empty list
 for (i in 1:pages) {
   list_of_values <-  lapply((1:length(articles[[i]])), function(y) {
@@ -182,7 +186,6 @@ df <- rbind.fill(df) #merge all together
 
 Finally, we save the data frame as .csv file
 
-```{r}
+```{r eval=FALSE}
 write.csv(df, file = file_name, row.names = F)
 ```
-
