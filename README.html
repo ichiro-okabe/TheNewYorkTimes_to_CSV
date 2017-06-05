@@ -136,13 +136,13 @@ $(document).ready(function () {
 <h2>API key</h2>
 <p>In order to run this code you have to obtain an <a href="http://developer.nytimes.com/signup">Article Search API key</a>. An API key is a long string of numbers and letters The New York Times API administrators provide you.</p>
 <p>Replace yours in the following</p>
-<pre class="r"><code>key = &quot;InS3rt:YoUR:4P1keY:h3r3&quot; </code></pre>
+<pre class="r"><code>key &lt;- &quot;InS3rt:YoUR:4P1keY:h3r3&quot; </code></pre>
 </div>
 <div id="housekeeping" class="section level2">
 <h2>Housekeeping</h2>
 <p>I like to define the destination folder and file names at the beginning of my codes.</p>
 <pre class="r"><code># Write the name of the output file, always put .csv
-file_name = &quot;robot_test.csv&quot; 
+file_name &lt;- &quot;robot_test.csv&quot; 
 
 # set working directory
 setwd(choose.dir())</code></pre>
@@ -280,7 +280,7 @@ $(document).ready(function () {
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

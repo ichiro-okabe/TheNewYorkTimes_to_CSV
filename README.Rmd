@@ -29,7 +29,7 @@ An API key is a long string of numbers and letters The New York Times API admini
 Replace yours in the following
 
 ```{r}
-key = "InS3rt:YoUR:4P1keY:h3r3" 
+key <- "InS3rt:YoUR:4P1keY:h3r3" 
 ```
 
 
@@ -39,7 +39,7 @@ I like to define the destination folder and file names at the beginning of my co
 
 ```{r}
 # Write the name of the output file, always put .csv
-file_name = "robot_test.csv" 
+file_name <- "robot_test.csv" 
 
 # set working directory
 setwd(choose.dir())
