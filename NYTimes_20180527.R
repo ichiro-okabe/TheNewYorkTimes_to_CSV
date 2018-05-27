@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # An API key is a long string of numbers and letters The New York Times API administrators provide you. 
 # 
 # Replace yours in the following
-key <- "68e26e71cfac466cb66ad9ec81fdeb30" 
+key <- "InS3rt:YoUR:4P1keY:h3r3"
 
 ## Housekeeping
 # I like to define the destination folder and file names at the beginning of my codes.
